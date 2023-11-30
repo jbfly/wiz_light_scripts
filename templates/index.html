@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Light Control</title>
+    <style>
+        body {
+            background-color: black;
+            color: white;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding-top: 50px;
+        }
+        #tapButton {
+            padding: 15px 30px;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        #bpmDisplay {
+            font-family: 'Digital-7', monospace;
+            color: red;
+            font-size: 48px;
+            margin: 20px 0;
+        }
+        #bpmInput {
+            padding: 10px;
+            font-size: 18px;
+            width: 100px;
+            text-align: center;
+        }
+        #setBpmButton {
+            padding: 10px 20px;
+            font-size: 18px;
+        }
+    </style>
+    <script>
+        async function sendTap() {
+            await fetch('/tap', { method: 'POST' });
+            updateBpmDisplay();  // Call this function after each tap
+        }
+
+        async function setBpm() {
+            const bpmValue = document.getElementById('bpmInput').value;
+            await fetch('/set_bpm', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `bpm=${bpmValue}`
+            });
+            updateBpmDisplay();  // Also call this function after setting BPM manually
+        }
+
+        async function updateBpmDisplay() {
+            try {
+                const response = await fetch('/get_bpm');
+                const data = await response.json();
+                document.getElementById('currentBpm').innerText = parseFloat(data.bpm).toFixed(2); // Round to two decimal places
+            } catch (error) {
+                console.error('Error updating BPM display:', error);
+            }
+        }
+
+        // Periodically update BPM display every second
+        setInterval(updateBpmDisplay, 1000);
+    </script>
+</head>
+<body>
+    <button id="tapButton" onclick="sendTap()">Tap</button>
+    <div id="bpmInputContainer">
+        <input type="number" id="bpmInput" placeholder="Enter BPM">
+        <button id="setBpmButton" onclick="setBpm()">Set BPM</button>
+    </div>
+    <div id="bpmDisplay">
+        Current BPM: <span id="currentBpm">120.00</span>
+    </div>
+</body>
+</html>
